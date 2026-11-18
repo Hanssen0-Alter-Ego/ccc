@@ -27,12 +27,9 @@ console.log(`Found ${txCount} transactions (showing max 10)`);
 
 // Get details of a specific transaction
 if (txCount > 0) {
-  // Get the latest block number
-  const tip = await signer.client.getTip();
-  console.log(`\nCurrent tip block: ${tip}`);
-
-  // Get the tip header
+  // Read one header so height, hash and epoch describe the same block.
   const header = await signer.client.getTipHeader();
+  console.log(`\nCurrent tip block: ${header.number}`);
   console.log(`Tip hash: ${header.hash}`);
   console.log(
     `Tip epoch: ${header.epoch[0]}, ${header.epoch[1]}/${header.epoch[2]}`,
