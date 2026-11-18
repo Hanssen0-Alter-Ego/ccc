@@ -10,6 +10,8 @@ import { execute } from "../src/app/execute";
 import { MissingWalletError } from "../src/app/execute/wallet";
 
 const pinnedBlobs: Record<string, string> = {
+  "resolveDid.ts": "83190014bfcc63c9043cdc1f2a5570be4904e332",
+  "didHistory.ts": "03132a1c94ea94e5f9e53c0c8cf09ae6785f896e",
   "queryBalance.ts": "c0ebbba6ca1cc41b84da4f40e88f8c33cc5e1240",
   "queryCells.ts": "0c6b821f039f72a5c3bf1711f1117be99b6713e6",
   "queryTransactions.ts": "6776b12008c05e48d8370fd9f48e0e8ef5ea46e3",
@@ -27,6 +29,8 @@ function fixture() {
     getBalance: vi.fn(async () => BigInt(100)),
     getKnownScript: vi.fn(async () => script),
     async *findCellsByLock() {},
+    async *findCells() {},
+    findSingletonCellByType: vi.fn(async () => undefined),
     async *findTransactionsByLock() {
       yield { txHash: `0x${"11".repeat(32)}`, blockNumber: BigInt(1) };
     },
@@ -79,6 +83,53 @@ describe("maintained repository examples", () => {
       ).rejects.toBeInstanceOf(MissingWalletError);
     },
   );
+  it.each(["resolveDid.ts", "didHistory.ts"])(
+    "executes %s with a real encoded DID fixture",
+    async (file) => {
+      const { client, signer } = fixture();
+      const id = ccc.didCkb.didToArgs(
+        "did:ckb:qq2m72a2vas4e5ovcpxoedscguuu4nba",
+      );
+      const cell = ccc.Cell.from({
+        outPoint: { txHash: `0x${"33".repeat(32)}`, index: 0 },
+        cellOutput: {
+          capacity: ccc.fixedPointFrom(200),
+          lock: script,
+          type: { ...script, args: id },
+        },
+        outputData: ccc.hexFrom(
+          ccc.didCkb.DidCkbData.fromV1({
+            document: { id: "fixture" },
+          }).toBytes(),
+        ),
+      });
+      client.findSingletonCellByType = vi.fn(async () => cell);
+      client.findCells = async function* () {
+        yield cell;
+      };
+      client.getTransaction = vi.fn(async () =>
+        ccc.ClientTransactionResponse.from({
+          status: "committed",
+          transaction: ccc.Transaction.from({
+            outputs: [cell.cellOutput],
+            outputsData: [cell.outputData],
+          }),
+          blockNumber: BigInt(1),
+        }),
+      );
+      const source = readFileSync(
+        new URL(`../../examples/src/${file}`, import.meta.url),
+        "utf8",
+      );
+      const log = vi.fn();
+      await execute(source, async () => {}, signer, log, client);
+      const text = log.mock.calls.flat(2).map(String).join(" ");
+      expect(text).toContain(
+        file === "resolveDid.ts" ? "Address controls 1 DID" : "[CREATE]",
+      );
+      expect(log.mock.calls.every(([level]) => level === "info")).toBe(true);
+    },
+  );
   it("explains wallet/network and loading safety, disables repeated loads", () => {
     const html = renderToStaticMarkup(
       createElement(RepositoryExamples, { onLoad: vi.fn(), isLoading: true }),
@@ -86,6 +137,6 @@ describe("maintained repository examples", () => {
     expect(html).toContain("currently selected network");
     expect(html).toContain("do not sign or broadcast");
     expect(html).toContain("never runs code");
-    expect(html.match(/disabled=""/g)).toHaveLength(3);
+    expect(html.match(/disabled=""/g)).toHaveLength(REPOSITORY_EXAMPLES.length);
   });
 });

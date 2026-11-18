@@ -77,6 +77,18 @@ export const REPOSITORY_EXAMPLES = [
     description:
       "List up to ten address transactions and inspect the latest block.",
   },
+  {
+    file: "resolveDid.ts",
+    title: "Resolve a CKB DID",
+    description:
+      "Resolve a DID document and list DIDs owned by the selected address. Edit the sample identifier for your network.",
+  },
+  {
+    file: "didHistory.ts",
+    title: "Trace DID history",
+    description:
+      "Follow a live DID back through updates to its creation (up to 50 steps). An absent DID returns an empty history.",
+  },
 ].map((example) => ({
   ...example,
   sourceUrl: `https://raw.githubusercontent.com/ckb-devrel/ccc/${EXAMPLES_REVISION}/packages/examples/src/${example.file}`,

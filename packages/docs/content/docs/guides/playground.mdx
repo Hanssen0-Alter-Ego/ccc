@@ -43,14 +43,18 @@ Drag the divider to resize the panels, or focus it and use the arrow keys. On na
 ### Repository examples
 
 **Examples** includes the local Transaction anatomy preview and transfer builder,
-plus **Query balances**, **Explore live cells**, and **Read transaction history**.
-The three read-only queries reuse `packages/examples/src` from a tested, pinned
+plus **Query balances**, **Explore live cells**, **Read transaction history**,
+**Resolve a CKB DID**, and **Trace DID history**.
+The five read-only queries reuse `packages/examples/src` from a tested, pinned
 CCC revision rather than maintaining separate Playground copies. The source link
 in the picker opens that revision. Loading requires network access and does not
 execute code or change networks; review the source, select a real or read-only
 example wallet, and press **Run**. Results reflect the selected network and
 address, so an empty history or zero balance is valid. The local anatomy example
-needs neither a wallet nor RPC. None of these picker examples signs or broadcasts.
+needs neither a wallet nor RPC. The DID examples use an editable sample identifier;
+replace it with one on the selected network. An absent DID is a valid empty result,
+and history follows at most 50 steps from a live DID. None of these picker examples
+signs or broadcasts.
 
 ## Available imports
 
